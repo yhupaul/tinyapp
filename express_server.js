@@ -39,6 +39,16 @@ app.post("/urls", (req, res) => {
   res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
+function generateRandomString() {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+​
+  for (var i = 0; i < 5; i++) 
+    text += possible. charAt(Math. floor(Math. random() * possible. length));
+    return text;
+  
+}
+
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: href='#http://www.lighthouselabs.ca' };
   res.render("urls_show", templateVars);
