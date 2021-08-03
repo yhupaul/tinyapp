@@ -6,7 +6,7 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -35,34 +35,30 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  console.log(req.body);
+  res.redirect(`/urls/${generateRandomString()}`);  // Log the POST request body to the console
+  res.send('ok');         // Respond with 'Ok' (we will replace this)
 });
 
-function generateRandomString() {
-  var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-​
-  for (var i = 0; i < 5; i++) 
-    text += possible. charAt(Math. floor(Math. random() * possible. length));
-    return text;
-  
-}
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = "http://www.lighthouselabs.ca"// const longURL = ...
+  res.redirect(longURL);
+});
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: href='#http://www.lighthouselabs.ca' };
+  const templateVars = { shortURL: req.params.shortURL, longURL: href = '#http://www.lighthouselabs.ca' };
   res.render("urls_show", templateVars);
 });
 
+function generateRandomString() {
+  let text = "";
+  let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < 5; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
 
-app.get("/set", (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
- });
- 
- app.get("/fetch", (req, res) => {
-  res.send(`a = ${a}`);
- });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
