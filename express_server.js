@@ -36,17 +36,19 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body);
-  res.redirect(`/urls/${generateRandomString()}`);  // Log the POST request body to the console
-  res.send('ok');         // Respond with 'Ok' (we will replace this)
+  let shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`/urls/${shortURL}`);  // Log the POST request body to the console
+  // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = "http://www.lighthouselabs.ca"// const longURL = ...
+  const longURL = urlDatabase[req.params.shortURL]// const longURL = ...
   res.redirect(longURL);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: href = '#http://www.lighthouselabs.ca' };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 
