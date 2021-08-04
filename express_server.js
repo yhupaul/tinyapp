@@ -8,7 +8,10 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 app.use(morgan('dev'));
 const bodyParser = require("body-parser");
+const { response } = require("express");
 app.use(bodyParser.urlencoded({ extended: true }));
+const cookieparser = require("cookie-parser");
+app.use(cookieparser());
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -28,7 +31,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 
@@ -66,6 +69,24 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   let longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
   res.redirect("/urls");
+});
+
+app.post('/login', (req, res) => {
+  const inputUsername = req.body.username;
+  res.cookie('username', inputUsername);
+  res.redirect('/urls');
+});
+
+app.post('/login', (req,res) =>{
+const templateVars = {
+  username: req.cookies["username"], // ... any other vars
+};
+res.render("urls_index", templateVars);
+});
+
+app.post('/logout', (req,res) =>{
+res.clearCookie("username")
+res.redirect('/urls');
 });
 
 function generateRandomString() {
