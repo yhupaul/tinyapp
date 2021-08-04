@@ -11,6 +11,7 @@ const bodyParser = require("body-parser");
 const { response } = require("express");
 app.use(bodyParser.urlencoded({ extended: true }));
 const cookieparser = require("cookie-parser");
+const e = require("express");
 app.use(cookieparser());
 
 const urlDatabase = {
@@ -31,7 +32,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
 });
 
@@ -73,21 +74,24 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 app.post('/login', (req, res) => {
   const inputUsername = req.body.username;
-  res.cookie('username', inputUsername);
+  res.cookie('user_id', inputUsername);
   res.redirect('/urls');
 });
 
 app.post('/login', (req,res) =>{
+  const userid = req.cookies["user_id"];
 const templateVars = {
-  username: req.cookies["username"], // ... any other vars
+  user: users[userid], // 
 };
 res.render("urls_index", templateVars);
 });
 
 app.post('/logout', (req,res) =>{
-res.clearCookie("username")
+res.clearCookie("user_id")
 res.redirect('/urls');
 });
+
+
 
 function generateRandomString() {
   let text = "";
@@ -96,8 +100,52 @@ function generateRandomString() {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
   return text;
-}
+};
 
+//global object user for stroing and accessing
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
+//users["userRandomID"]
+
+//get /register from urls_registration
+app.get("/register", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies["user_id"]]
+//defined username
+  };
+  console.log(req.cookies["user_id"])
+  res.render("urls_registration.ejs",templateVars);
+});
+
+//registraion 
+app.post("/register", (req,res) =>{
+  // console.log("register req.body:",req.body);
+  let id = generateRandomString();
+  let email = req.body.email;
+  let password = req.body.password;
+  const newUser = {
+    id: id,
+    email: email,
+    password: password
+  };
+  
+  users[id] = newUser; 
+  //console.log(users);
+  
+  res.cookie("user_id",id);  //user_id 
+
+  res.redirect("/urls");
+  });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
