@@ -33,11 +33,12 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  console.log(req.cookies)
   res.render("urls_index", templateVars);
 });
-
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -54,7 +55,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies["user_id"]]};
   res.render("urls_show", templateVars);
 });
 
@@ -64,34 +65,20 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 //editing 
-app.post("/urls/:shortURL/edit", (req, res) => {
-   console.log("here:") 
+app.get("/urls/:shortURL", (req, res) =>{
+  const templateVars = {
+    user: users[req.cookies["user_id"]], // ... any other vars
+  }; 
+  res.render("urls_show", templateVars);
+});
+
+app.post("/urls/:shortURL", (req, res) => {
+   //console.log("here:") 
   let shortURL = req.params.shortURL;
   let longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
   res.redirect("/urls");
 });
-
-app.post('/login', (req, res) => {
-  const inputUsername = req.body.username;
-  res.cookie('user_id', inputUsername);
-  res.redirect('/urls');
-});
-
-app.post('/login', (req,res) =>{
-const userid = req.cookies["user_id"];
-const templateVars = {
-  user: users[userid], // using cookies 
-};
-res.render("urls_index", templateVars);
-});
-
-app.post('/logout', (req,res) =>{
-res.clearCookie("user_id")
-res.redirect('/urls');
-});
-
-
 
 function generateRandomString() {
   let text = "";
@@ -130,7 +117,8 @@ app.get("/register", (req, res) => {
 //reuseing the function
 const getUserByemail = function(email){
   for (let user in users) {
-    if (users[user].email === email) {
+    // console.log(users[user]["email"], email)
+    if (users[user]["email"] === email) {
       return users[user];
     }
   }
@@ -167,13 +155,49 @@ app.post("/register", (req,res) =>{
   app.get("/login", (req, res) => {
     const templateVars = {
       user: users[req.cookies["user_id"]]
-  
     };
-    console.log(req.cookies["user_id"])
     res.render("urls_login.ejs",templateVars);
   });
  
+  app.post("/login", (req,res) =>{
+    // console.log("login req.body:",req.body);
+    let email = req.body.email;
+    let id = getUserByemail(email);
+    let password = req.body.password;
+   
+    for (user in users) {
+      if (users[user]['email'] === email) {
+        if (users[user]['password'] === password) {
+          id= users[user]['id'];
+          res.cookie('user_id', id);
+          res.redirect('/urls');
+          return;
+        }
+      }
+    }
+
+    res.status(403).send("invaild email or password");
+    // const newUser = {
+    //   id: id,
+    //   email: email,
+    //   password: password
+    // };
+    
+   
+    // console.log(id);
+    // res.cookie("user_id",id);  //user_id 
   
+    //  res.redirect("/urls");
+  
+  });
+
+  app.post('/logout', (req,res) =>{
+    console.log("here")
+    console.log(res.clearCookie)
+    res.clearCookie("user_id")
+    
+    res.redirect('/urls');
+    });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
