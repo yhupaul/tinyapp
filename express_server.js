@@ -81,7 +81,7 @@ app.post('/login', (req, res) => {
 app.post('/login', (req,res) =>{
   const userid = req.cookies["user_id"];
 const templateVars = {
-  user: users[userid], // 
+  user: users[userid], // using cookies 
 };
 res.render("urls_index", templateVars);
 });
@@ -127,12 +127,28 @@ app.get("/register", (req, res) => {
   res.render("urls_registration.ejs",templateVars);
 });
 
+//reuseing the function
+const getUserByemail = function(email){
+  for (let user in users) {
+    if (users[user].email === email) {
+      return users[user];
+    }
+  }
+};
 //registraion 
 app.post("/register", (req,res) =>{
   // console.log("register req.body:",req.body);
   let id = generateRandomString();
   let email = req.body.email;
   let password = req.body.password;
+ //to check if there is empty userEmail or userpassord
+ if (!email || !password){
+  res.status(400).send("invaild email or password");  
+} else {
+  const user = getUserByemail(email);
+  if (user){
+    return res.status(400).send("your email is not available");
+  }
   const newUser = {
     id: id,
     email: email,
@@ -145,7 +161,28 @@ app.post("/register", (req,res) =>{
   res.cookie("user_id",id);  //user_id 
 
   res.redirect("/urls");
+}
   });
+ //error
+  // app.post("/register",(req,res)=>{
+  //   let userID = generateRandomString();
+  //   console.log(userID)
+  //   let userEamil = req.body.email;
+  //   let userPassword = req.body.password;
+  //   //to check if there is empty userEmail or userpassord
+  //   if (userEamil === " " || userPassword === " "){
+  //   res.status(400);
+  //   res.redirect('/urls');
+  // }
+  //  // if the email is already in the file(obj)
+  // if (userEamil in user.email) {
+  //   res.cookie("user_id", id )
+  //   res.statusCode(400);
+  //   res.redirect('/urls');
+  //   console.log("user:", users)
+  // } 
+  // res.redirect("/urls");
+  // });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
