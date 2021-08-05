@@ -79,7 +79,7 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/login', (req,res) =>{
-  const userid = req.cookies["user_id"];
+const userid = req.cookies["user_id"];
 const templateVars = {
   user: users[userid], // using cookies 
 };
@@ -163,26 +163,17 @@ app.post("/register", (req,res) =>{
   res.redirect("/urls");
 }
   });
- //error
-  // app.post("/register",(req,res)=>{
-  //   let userID = generateRandomString();
-  //   console.log(userID)
-  //   let userEamil = req.body.email;
-  //   let userPassword = req.body.password;
-  //   //to check if there is empty userEmail or userpassord
-  //   if (userEamil === " " || userPassword === " "){
-  //   res.status(400);
-  //   res.redirect('/urls');
-  // }
-  //  // if the email is already in the file(obj)
-  // if (userEamil in user.email) {
-  //   res.cookie("user_id", id )
-  //   res.statusCode(400);
-  //   res.redirect('/urls');
-  //   console.log("user:", users)
-  // } 
-  // res.redirect("/urls");
-  // });
+//new login page 
+  app.get("/login", (req, res) => {
+    const templateVars = {
+      user: users[req.cookies["user_id"]]
+  
+    };
+    console.log(req.cookies["user_id"])
+    res.render("urls_login.ejs",templateVars);
+  });
+ 
+  
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
