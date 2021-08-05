@@ -31,73 +31,52 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+//make templateto pass content to urls_index
 app.get("/urls", (req, res) => {
-<<<<<<< HEAD
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
-  res.render("urls_index", templateVars);    //uername set and defied in tamplate
-=======
   const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
-  console.log(req.cookies)
+  //console.log(req.cookies)
   res.render("urls_index", templateVars);
->>>>>>> feature/user-registration
 });
+
+//urls_new template in the browser
 app.get("/urls/new", (req, res) => {
-<<<<<<< HEAD
-  const templateVars = {
-    username: req.cookies["username"], // ... any other vars
-  };
-=======
-  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
->>>>>>> feature/user-registration
+
+   const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+
   res.render("urls_new", templateVars);
 });
 
+// make random shortURL, replace and send to urls/:shorURL 
 app.post("/urls", (req, res) => {
-  console.log(req.body);
+  console.log(req.body);// Log the POST request body to the console
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
-  res.redirect(`/urls/${shortURL}`);  // Log the POST request body to the console
-  // Respond with 'Ok' (we will replace this)
+  res.redirect(`/urls/${shortURL}`);  
+ 
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];// const longURL = ...
-  res.redirect(longURL);
-});
-
+//using data from shortUrl, send template(content) to urls_show
 app.get("/urls/:shortURL", (req, res) => {
-<<<<<<< HEAD
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"]};
-=======
+
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies["user_id"]]};
->>>>>>> feature/user-registration
+
   res.render("urls_show", templateVars);
 });
 
+//'/u/:shortURL shorter version of ulrs/:shortURL !!generate a link that will redirect to longURL
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
+//using delete operator to remove /urls/:shortURL?delete
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
 
 //editing 
-<<<<<<< HEAD
-app.get("/urls/:shortURL/edit", (req, res) =>{
-  const templateVars = {
-    username: req.cookies["username"], // ... any other vars
-=======
-app.get("/urls/:shortURL", (req, res) =>{
-  const templateVars = {
-    user: users[req.cookies["user_id"]], // ... any other vars
->>>>>>> feature/user-registration
-  }; 
-  res.render("urls_show", templateVars);
-});
-
-<<<<<<< HEAD
-app.post("/urls/:shortURL/edit", (req, res) => {
-=======
 app.post("/urls/:shortURL", (req, res) => {
->>>>>>> feature/user-registration
    //console.log("here:") 
   let shortURL = req.params.shortURL;
   let longURL = req.body.longURL;
@@ -105,28 +84,17 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls");
 });
 
-<<<<<<< HEAD
-app.post('/login', (req, res) => {
-  const inputUsername = req.body.username;
-  res.cookie('username', inputUsername);
-  res.redirect('/urls');
-});
+// app.get("/urls/:shortURL", (req, res) =>{
+//   const templateVars = {
+//     user: users[req.cookies["user_id"]], // ... any other vars
 
-app.post('/login', (req,res) =>{
-const templateVars = {
-  username: req.cookies["username"], // ... any other vars
-}; 
-                                   //username is set and defined
-res.render("urls_index", templateVars);
-});
+//   }; 
+//   res.render("urls_show", templateVars);
+// });
 
-app.post('/logout', (req,res) =>{
-res.clearCookie("username") //clearsthe username logout point
-res.redirect('/urls');      //return to /urls
-});
 
-=======
->>>>>>> feature/user-registration
+
+
 function generateRandomString() {
   let text = "";
   let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
