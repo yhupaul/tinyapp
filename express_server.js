@@ -46,24 +46,38 @@ app.get("/urls", (req, res) => {
 
 //urls_new template in the browser
 app.get("/urls/new", (req, res) => {
+  if(!users[req.cookies["user_id"]]){
+    res.redirect('/login');
+  };
 
    const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
 
   res.render("urls_new", templateVars);
+
+ 
+
+
 });
 
 // make random shortURL, replace and send to urls/:shorURL 
 app.post("/urls", (req, res) => {
   console.log(req.body);// Log the POST request body to the console
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = urlDatabase[req.body.longURL];
+  urlDatabase[shortURL] = {
+    longURL: urlDatabase[req.body.longURL],
+      userID: users[req.cookies["user_id"]],
+  }
+  
   res.redirect(`/urls/${shortURL}`);  
  
+
 });
 
 //using data from shortUrl, send template(content) to urls_show
 app.get("/urls/:shortURL", (req, res) => {
-
+  if (!urlDatabase[req.params.shortURL]){
+    return res.status(500).send("your shortURL is not invailed")
+  };
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]["longURL"], user: users[req.cookies["user_id"]]};
 
   res.render("urls_show", templateVars);
@@ -71,6 +85,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //'/u/:shortURL shorter version of ulrs/:shortURL !!generate a link that will redirect to longURL
 app.get("/u/:shortURL", (req, res) => {
+  
   const longURL = urlDatabase[req.params.shortURL]["longURL"];
   res.redirect(longURL);
 });
