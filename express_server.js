@@ -25,6 +25,18 @@ const urlDatabase = {
   }
 };
 
+const urlsForUser = function(id) {
+  let userURL = {};
+  for (url in urlDatabase) {
+    // console.log(url)
+     let dbEntry = urlDatabase[url]
+     if (dbEntry.userID === id) {
+      userURL[url] = dbEntry;
+     }
+    }
+  return userURL;
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -39,9 +51,19 @@ app.get("/hello", (req, res) => {
 
 //make templateto pass content to urls_index
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  const errorMessage = { error: "Please login first!" }
+  if (!users[req.cookies["user_id"]]){
+    
+    res.render("urls_error.ejs", errorMessage);
+  } else {
+    const userid = users[req.cookies["user_id"]]["id"] 
+    console.log(userid)
+    const urls = urlsForUser(userid)
+    console.log(urls)
+  const templateVars = { urls: urls, user: users[req.cookies["user_id"]] };
   //console.log(req.cookies)
   res.render("urls_index", templateVars);
+  }
 });
 
 //urls_new template in the browser
@@ -64,10 +86,10 @@ app.post("/urls", (req, res) => {
   console.log(req.body);// Log the POST request body to the console
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = {
-    longURL: urlDatabase[req.body.longURL],
-      userID: users[req.cookies["user_id"]],
+    longURL: req.body.longURL,
+      userID: users[req.cookies["user_id"]]["id"],
   }
-  
+  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);  
  
 
@@ -75,11 +97,13 @@ app.post("/urls", (req, res) => {
 
 //using data from shortUrl, send template(content) to urls_show
 app.get("/urls/:shortURL", (req, res) => {
+  
+  const errorMessage = { error: "your shortURL is invailed" } //error message with newHTML
   if (!urlDatabase[req.params.shortURL]){
-    return res.status(500).send("your shortURL is not invailed")
+    res.render("urls_error.ejs", errorMessage);
   };
+  
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]["longURL"], user: users[req.cookies["user_id"]]};
-
   res.render("urls_show", templateVars);
 });
 
@@ -92,17 +116,48 @@ app.get("/u/:shortURL", (req, res) => {
 
 //using delete operator to remove /urls/:shortURL?delete
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  
+  let userid = req.cookies["user_id"]
+
+  if (!userid){
+    const errorMessage = { error: "this is not yours" }
+    
+    res.render("urls_error.ejs", errorMessage);
+  }
+
+  let urls = urlsForUser(userid);
+  for (url in urls) {
+    if (url === req.params.shortURL) {
+      delete urlDatabase[req.params.shortURL];
+      res.redirect("/urls");
+      
+    }
+  } 
+  
 });
 
 //editing 
 app.post("/urls/:shortURL", (req, res) => {
-   //console.log("here:") 
-  let shortURL = req.params.shortURL;
-  let longURL = req.body.longURL;
-  urlDatabase[shortURL]["longURL"] = longURL;
-  res.redirect("/urls");
+   //console.log("here:")
+   let userid = req.cookies["user_id"]
+
+   if (!userid){
+    const errorMessage = { error: "this is not yours" }
+    
+    res.render("urls_error.ejs", errorMessage);
+  }
+
+   let urls = urlsForUser(userid);
+   for (url in urls) {
+     if (url === req.params.shortURL) {
+       let shortURL = req.params.shortURL;
+       let longURL = req.body.longURL;
+       urlDatabase[shortURL]["longURL"] = longURL;
+       res.redirect("/urls");    
+     }
+   } 
+
+
 });
 
 // app.get("/urls/:shortURL", (req, res) =>{
@@ -159,6 +214,7 @@ const getUserByemail = function(email){
     }
   }
 };
+
 //registraion 
 app.post("/register", (req,res) =>{
   // console.log("register req.body:",req.body);
@@ -194,6 +250,8 @@ app.post("/register", (req,res) =>{
     };
     res.render("urls_login.ejs",templateVars);
   });
+
+
  
   app.post("/login", (req,res) =>{
     // console.log("login req.body:",req.body);
@@ -212,7 +270,11 @@ app.post("/register", (req,res) =>{
       }
     }
 
-    res.status(403).send("invaild email or password");
+    // res.status(403).send("invaild email or password");
+    const errorMessage = { error: "invaild email or password" }
+    if (!urlDatabase[req.params.shortURL]){
+      res.render("urls_error.ejs", errorMessage);
+    };
     // const newUser = {
     //   id: id,
     //   email: email,
