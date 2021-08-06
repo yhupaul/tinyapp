@@ -60,9 +60,9 @@ app.get("/urls", (req, res) => {
     res.render("urls_error.ejs", errorMessage);
   } else {
     const userid = users[req.cookies["user_id"]]["id"] 
-    console.log(userid)
+    // console.log(userid)
     const urls = urlsForUser(userid)
-    console.log(urls)
+    // console.log(urls)
   const templateVars = { urls: urls, user: users[req.cookies["user_id"]] };
   //console.log(req.cookies)
   res.render("urls_index", templateVars);
@@ -86,13 +86,13 @@ app.get("/urls/new", (req, res) => {
 
 // make random shortURL, replace and send to urls/:shorURL 
 app.post("/urls", (req, res) => {
-  console.log(req.body);// Log the POST request body to the console
+  // console.log(req.body);// Log the POST request body to the console
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
       userID: users[req.cookies["user_id"]]["id"],
   }
-  console.log(urlDatabase);
+  // console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);  
  
 
@@ -206,7 +206,7 @@ app.get("/register", (req, res) => {
     user: users[req.cookies["user_id"]]
 //defined username
   };
-  console.log(req.cookies["user_id"])
+  // console.log(req.cookies["user_id"])
   res.render("urls_registration.ejs",templateVars);
 });
 
@@ -268,7 +268,7 @@ app.post("/register", (req,res) =>{
     let email = req.body.email;
     let id = getUserByemail(email);
     let password = req.body.password;
-    console.log(users);
+    // console.log(users);
     for (user in users) {
       if (users[user]['email'] === email) {
         if (bcrypt.compareSync(password, users[user]["password"])) {
@@ -300,8 +300,8 @@ app.post("/register", (req,res) =>{
   });
 
   app.post('/logout', (req,res) =>{
-    console.log("here")
-    console.log(res.clearCookie)
+    // console.log("here")
+    // console.log(res.clearCookie)
     res.clearCookie("user_id")
     
     res.redirect('/urls');
