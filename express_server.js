@@ -1,6 +1,7 @@
 
 const express = require("express");
 const morgan = require("morgan");
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -13,6 +14,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const cookieparser = require("cookie-parser");
 const e = require("express");
 app.use(cookieparser());
+// app.use(bcrypt());
+
 
 const urlDatabase = {
   b6UTxQ: {
@@ -193,6 +196,8 @@ const users = {
     password: "dishwasher-funk"
   }
 };
+
+
 //users["userRandomID"]
 
 //get /register from urls_registration
@@ -221,6 +226,7 @@ app.post("/register", (req,res) =>{
   let id = generateRandomString();
   let email = req.body.email;
   let password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
  //to check if there is empty userEmail or userpassord
  if (!email || !password){
   res.status(400).send("invaild email or password");  
@@ -232,17 +238,21 @@ app.post("/register", (req,res) =>{
   const newUser = {
     id: id,
     email: email,
-    password: password
+    password: hashedPassword
   };
   
   users[id] = newUser; 
   //console.log(users);
   
   res.cookie("user_id",id);  //user_id 
-
+  
   res.redirect("/urls");
 }
   });
+
+ 
+
+
 //new login page 
   app.get("/login", (req, res) => {
     const templateVars = {
@@ -258,18 +268,18 @@ app.post("/register", (req,res) =>{
     let email = req.body.email;
     let id = getUserByemail(email);
     let password = req.body.password;
-   
+    console.log(users);
     for (user in users) {
       if (users[user]['email'] === email) {
-        if (users[user]['password'] === password) {
+        if (bcrypt.compareSync(password, users[user]["password"])) {
           id= users[user]['id'];
           res.cookie('user_id', id);
           res.redirect('/urls');
           return;
         }
-      }
+      }users[user]['password']
     }
-
+   
     // res.status(403).send("invaild email or password");
     const errorMessage = { error: "invaild email or password" }
     if (!urlDatabase[req.params.shortURL]){
