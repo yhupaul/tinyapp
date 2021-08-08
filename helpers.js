@@ -10,7 +10,7 @@ const getUserByEmail = function(email, database) {
   }
 };
   
-function generateRandomString() {
+const generateRandomString = function() {
   let text = "";
   let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   for (let i = 0; i < 5; i++) {

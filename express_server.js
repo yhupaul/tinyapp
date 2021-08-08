@@ -91,7 +91,7 @@ app.post("/urls", (req, res) => {
 //using data from shortUrl, send template(content) to urls_show
 app.get("/urls/:shortURL", (req, res) => {
   
-  const errorMessage = { error: "your shortURL is invailed" }; //error message with newHTML
+  const errorMessage = { error: "You do not have access to this shortURL" }; //error message with newHTML
   if (!urlDatabase[req.params.shortURL]) {
     res.render("urls_error.ejs", errorMessage);
   }
@@ -130,21 +130,22 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 //editing
-app.post("/urls/:shortURL", (req, res) => {
-  
+app.post("/urls/:shortURL", (req, res) => {  
+
   let userid = req.session.user_id;
 
   if (!userid) {
     const errorMessage = { error: "this is not yours" };
-    
     res.render("urls_error.ejs", errorMessage);
   }
-  console.log(userid);
+  
   if (req.body.longURL === "") {
-    return res.send("LongURL can not be empty");
+    const errorMessage = { error: "LongURL can not be empty" };
+    res.render("urls_error.ejs", errorMessage);
   }
 
   let urls = urlsForUser(userid, urlDatabase);
+
   for (let url in urls) {
     if (url === req.params.shortURL) {
       let shortURL = req.params.shortURL;
@@ -152,11 +153,8 @@ app.post("/urls/:shortURL", (req, res) => {
       urlDatabase[shortURL]["longURL"] = longURL;
     }
   }
-  res.redirect("/urls");
-  
+  res.redirect("/urls");  
 });
-
-
 
 //global object user for stroing and accessing
 const users = {
@@ -185,8 +183,7 @@ app.get("/register", (req, res) => {
   const templateVars = {
     user: users[req.session.user_id]
     //defined username
-  };
-  
+  }; 
   res.render("urls_registration.ejs",templateVars);
 });
 
@@ -197,7 +194,7 @@ app.post("/login", (req,res) =>{
   let id = getUserByEmail(email, users);
   let password = req.body.password;
   
-  for (user in users) {
+  for (const user in users) {
     if (users[user]['email'] === email) {
       if (bcrypt.compareSync(password, users[user]["password"])) {
         id = users[user]['id'];
@@ -208,11 +205,8 @@ app.post("/login", (req,res) =>{
     }users[user]['password'];
   }
   
-  // if (!urlDatabase[req.params.shortURL]) {
   const errorMessage = { error: "invaild email or password" };
   res.render("urls_error.ejs", errorMessage);
-  // }
-  //  res.status(403).send("invaild email or password");
     
 });
   
@@ -225,7 +219,7 @@ app.post("/register", (req,res) =>{
   const hashedPassword = bcrypt.hashSync(password, 10);
   //to check if there is empty userEmail or userpassord
   if (!email || !password) {
-    const errorMessage = { error: "invaild email or password" };
+    const errorMessage = { error: "The email and password fields are blank. Please fill them in" };
     res.render("urls_error.ejs", errorMessage);
   } else {
     const user = getUserByEmail(email, users);
@@ -240,18 +234,14 @@ app.post("/register", (req,res) =>{
     };
     
     users[id] = newUser;
-    
-    
+  
     req.session.user_id = id;  //user_id
-    
     res.redirect("/urls");
   }
 });
 
 app.post('/logout', (req,res) =>{
-  
-  req.session = null;
-    
+  req.session = null;  
   res.redirect('/login');
 });
 
