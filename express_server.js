@@ -48,104 +48,84 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   const errorMessage = { error: "Please login first!" };
   if (!users[req.session.user_id]) {
-    
     res.render("urls_error.ejs", errorMessage);
-
   } else {
-
     const userid = req.session.user_id;
     const urls = urlsForUser(userid, urlDatabase);
     const templateVars = { urls: urls, user: users[req.session.user_id]};
-    console.log("urlDatabase:",urlDatabase);
     res.render("urls_index", templateVars);
   }
 });
 
 //urls_new template in the browser
 app.get("/urls/new", (req, res) => {
-
   if (!users[req.session.user_id]) {
     res.redirect('/login');
   }
-
-  const templateVars = { urls: urlDatabase, user: users[req.session.user_id]};
-                                                        
+  const templateVars = { urls: urlDatabase, user: users[req.session.user_id]};                                                     
   res.render("urls_new", templateVars);
-
 });
 
 // make random shortURL, replace and send to urls/:shorURL
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
-  console.log("longURL:", req.body.longURL);
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
     userID: req.session.user_id
   };
-
   res.redirect(`/urls/${shortURL}`);
- 
-
 });
 
 //using data from shortUrl, send template(content) to urls_show
 app.get("/urls/:shortURL", (req, res) => {
-  
   const errorMessage = { error: "You do not have access to this shortURL" }; //error message with newHTML
   if (!urlDatabase[req.params.shortURL]) {
     res.render("urls_error.ejs", errorMessage);
+    return;
   }
-  
+  if (urlDatabase[req.params.shortURL].userID !== req.session.user_id) {
+    res.render("urls_error.ejs", errorMessage);
+    return;
+  }
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]["longURL"], user: users[req.session.user_id]};
   res.render("urls_show", templateVars);
+
 });
 
 //'/u/:shortURL shorter version of ulrs/:shortURL !!generate a link that will redirect to longURL
 app.get("/u/:shortURL", (req, res) => {
-  
   const longURL = urlDatabase[req.params.shortURL]["longURL"];
   res.redirect(longURL);
 });
 
 //using delete operator to remove /urls/:shortURL?delete
 app.post("/urls/:shortURL/delete", (req, res) => {
-  
   let userid = req.session.user_id;
-
   if (!userid) {
     const errorMessage = { error: "this is not yours" };
-    
     res.render("urls_error.ejs", errorMessage);
   }
-
   let urls = urlsForUser(userid, urlDatabase);
   for (let url in urls) {
     if (url === req.params.shortURL) {
       delete urlDatabase[req.params.shortURL];
-      res.redirect("/urls");
-      
+      res.redirect("/urls");  
     }
-  }
-  
+  } 
 });
 
 //editing
 app.post("/urls/:shortURL", (req, res) => {  
-
   let userid = req.session.user_id;
-
   if (!userid) {
     const errorMessage = { error: "this is not yours" };
     res.render("urls_error.ejs", errorMessage);
   }
-  
   if (req.body.longURL === "") {
     const errorMessage = { error: "LongURL can not be empty" };
     res.render("urls_error.ejs", errorMessage);
   }
-
   let urls = urlsForUser(userid, urlDatabase);
-
   for (let url in urls) {
     if (url === req.params.shortURL) {
       let shortURL = req.params.shortURL;
@@ -175,7 +155,11 @@ app.get("/login", (req, res) => {
   const templateVars = {
     user: users[req.session.user_id]
   };
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  }
   res.render("urls_login.ejs",templateVars);
+  
 });
 
 //get /register from urls_registration
@@ -184,12 +168,14 @@ app.get("/register", (req, res) => {
     user: users[req.session.user_id]
     //defined username
   }; 
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  }
   res.render("urls_registration.ejs",templateVars);
 });
 
 
 app.post("/login", (req,res) =>{
-  
   let email = req.body.email;
   let id = getUserByEmail(email, users);
   let password = req.body.password;
@@ -204,15 +190,12 @@ app.post("/login", (req,res) =>{
       }
     }users[user]['password'];
   }
-  
   const errorMessage = { error: "invaild email or password" };
-  res.render("urls_error.ejs", errorMessage);
-    
+  res.render("urls_error.ejs", errorMessage);    
 });
   
 //registraion
-app.post("/register", (req,res) =>{
-    
+app.post("/register", (req,res) =>{   
   let id = generateRandomString();
   let email = req.body.email;
   let password = req.body.password;
@@ -231,10 +214,8 @@ app.post("/register", (req,res) =>{
       id: id,
       email: email,
       password: hashedPassword
-    };
-    
+    };  
     users[id] = newUser;
-  
     req.session.user_id = id;  //user_id
     res.redirect("/urls");
   }
