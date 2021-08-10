@@ -17,8 +17,6 @@ app.use(cookieSession({
   keys: ['key1', 'key2']
 }));
 
-
-
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -30,7 +28,6 @@ const urlDatabase = {
   }
 };
 
-
 //if user is login => /urls else =>login page
 app.get("/", (req, res) => {
   if (!users[req.session.user_id]) {
@@ -38,11 +35,9 @@ app.get("/", (req, res) => {
   }
   res.redirect("/urls");
 });
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
-
 
 //make templateto pass content to urls_index
 app.get("/urls", (req, res) => {
@@ -62,16 +57,22 @@ app.get("/urls/new", (req, res) => {
   if (!users[req.session.user_id]) {
     res.redirect('/login');
   }
-  const templateVars = { urls: urlDatabase, user: users[req.session.user_id]};                                                     
+  const templateVars = { urls: urlDatabase, user: users[req.session.user_id]};
   res.render("urls_new", templateVars);
 });
 
 // make random shortURL, replace and send to urls/:shorURL
 app.post("/urls", (req, res) => {
+  const userID = req.session.user_id;
+  if (!userID) {
+    const errorMessage = { error: "Please, login first"}; //error message wi
+    res.render("urls_error.ejs", errorMessage);
+    return;
+  }
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
-    userID: req.session.user_id
+    userID,
   };
   res.redirect(`/urls/${shortURL}`);
 });
@@ -89,7 +90,6 @@ app.get("/urls/:shortURL", (req, res) => {
   }
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]["longURL"], user: users[req.session.user_id]};
   res.render("urls_show", templateVars);
-
 });
 
 //'/u/:shortURL shorter version of ulrs/:shortURL !!generate a link that will redirect to longURL
@@ -109,13 +109,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   for (let url in urls) {
     if (url === req.params.shortURL) {
       delete urlDatabase[req.params.shortURL];
-      res.redirect("/urls");  
+      res.redirect("/urls");
     }
-  } 
+  }
 });
 
 //editing
-app.post("/urls/:shortURL", (req, res) => {  
+app.post("/urls/:shortURL", (req, res) => {
   let userid = req.session.user_id;
   if (!userid) {
     const errorMessage = { error: "this is not yours" };
@@ -133,7 +133,7 @@ app.post("/urls/:shortURL", (req, res) => {
       urlDatabase[shortURL]["longURL"] = longURL;
     }
   }
-  res.redirect("/urls");  
+  res.redirect("/urls");
 });
 
 //global object user for stroing and accessing
@@ -159,21 +159,20 @@ app.get("/login", (req, res) => {
     res.redirect("/urls");
   }
   res.render("urls_login.ejs",templateVars);
-  
 });
 
 //get /register from urls_registration
 app.get("/register", (req, res) => {
+  if (req.session.user_id) {
+    res.redirect("/urls");
+    return;
+  }
   const templateVars = {
     user: users[req.session.user_id]
     //defined username
-  }; 
-  if (req.session.user_id) {
-    res.redirect("/urls");
-  }
-  res.render("urls_registration.ejs",templateVars);
+  };
+  res.render("urls_registration",templateVars);
 });
-
 
 app.post("/login", (req,res) =>{
   let email = req.body.email;
@@ -191,11 +190,11 @@ app.post("/login", (req,res) =>{
     }users[user]['password'];
   }
   const errorMessage = { error: "invaild email or password" };
-  res.render("urls_error.ejs", errorMessage);    
+  res.render("urls_error.ejs", errorMessage);
 });
   
 //registraion
-app.post("/register", (req,res) =>{   
+app.post("/register", (req,res) =>{
   let id = generateRandomString();
   let email = req.body.email;
   let password = req.body.password;
@@ -207,14 +206,14 @@ app.post("/register", (req,res) =>{
   } else {
     const user = getUserByEmail(email, users);
     if (user) {
-      const errorMessage = { error: "This email is not available! " };
+      const errorMessage = { error: "This email is not available!" };
       res.render("urls_error.ejs", errorMessage);
     }
     const newUser = {
       id: id,
       email: email,
       password: hashedPassword
-    };  
+    };
     users[id] = newUser;
     req.session.user_id = id;  //user_id
     res.redirect("/urls");
@@ -222,7 +221,7 @@ app.post("/register", (req,res) =>{
 });
 
 app.post('/logout', (req,res) =>{
-  req.session = null;  
+  req.session = null;
   res.redirect('/login');
 });
 
