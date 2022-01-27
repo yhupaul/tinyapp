@@ -192,6 +192,7 @@ app.post("/login", (req,res) =>{
   const errorMessage = { error: "invaild email or password" };
   res.render("urls_error.ejs", errorMessage);
 });
+
   
 //registraion
 app.post("/register", (req,res) =>{
@@ -210,8 +211,8 @@ app.post("/register", (req,res) =>{
       res.render("urls_error.ejs", errorMessage);
     }
     const newUser = {
-      id: id,
-      email: email,
+      id,
+      email,
       password: hashedPassword
     };
     users[id] = newUser;
